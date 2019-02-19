@@ -56,7 +56,16 @@ be any of the following options: red, crimson, orange, yellow, green,
 blue, indigo, or violet.
 ......................................................................*)
 
-type color_label = NotImplemented ;;
+type color_label = 
+  | Red
+  | Crimson
+  | Orange
+  | Yellow
+  | Green
+  | Blue
+  | Indigo
+  | Violet
+;;
 
 (* But this is an overly simple representation of colors. Let's make
 it more usable.
@@ -92,7 +101,9 @@ channels. You'll want to use Simple and RGB as the value constructors
 in this new variant type.
 ......................................................................*)
 
-type color = NotImplemented ;;
+type color = 
+  | Simple of color_label
+  | RGB of int * int * int ;;
 
 (* There is an important assumption about the RGB values that
 determine whether a color is valid or not. The RGB type presupposes an
@@ -139,8 +150,15 @@ an Invalid_color exception with a useful message.
 
 exception Invalid_color of string ;;
 
-let validated_rgb = 
-  fun _ -> failwith "validated_rgb not implemented" ;;
+let validated_rgb (c : color) : color = 
+  match c with
+  | RGB (r, g, b) -> 
+    if (r >= 0 && r < 256)
+      && (g >= 0 && g < 256)
+      && (b >= 0 && b < 256)
+    then c
+    else raise (Invalid_color "Color is invalid")
+  | Simple c_l -> c ;;
 
 (*......................................................................
 Exercise 4: Write a function, make_color, that accepts three integers
@@ -148,8 +166,8 @@ for the channel values and returns a value of the color type. Be sure
 to verify the invariant.
 ......................................................................*)
 
-let make_color = 
-  fun _ -> failwith "make_color not implemented" ;;
+let make_color (r: int) (g : int) (b : int) : color = 
+  validated_rgb(RGB (r, g, b)) ;;
 
 (*......................................................................
 Exercise 5: Write a function, convert_to_rgb, that accepts a color and
@@ -164,10 +182,35 @@ below are some other values you might find helpful.
     255 | 255 |   0 | Yellow
      75 |   0 | 130 | Indigo
     240 | 130 | 240 | Violet
+
+      | Red
+  | Crimson
+  | Orange
+  | Yellow
+  | Green
+  | Blue
+  | Indigo
+  | Violet
+
+      ----|-----|-----|------------
+    255 |   0 |   0 | Red
+      0 |  64 |   0 | Dark green
+      0 | 255 | 255 | Cyan
+    164 |  16 |  52 | Crimson
 ......................................................................*)
 
-let convert_to_rgb = 
-  fun _ -> failwith "convert_to_rgb not implemented" ;;
+let convert_to_rgb (c : color) : (int * int * int)= 
+  match c with
+  | RGB (r,g,b) -> (r,g,b)
+  | Simple Red -> (255,0,0)
+  | Simple Crimson -> (164,16,52)
+  | Simple Orange -> (255,165,0)
+  | Simple Yellow -> (255,255,0)
+  | Simple Green -> (0,255,0)
+  | Simple Blue -> (0,0,255)
+  | Simple Indigo -> (75,0,130)
+  | Simple Violet -> (240,130,250) ;;
+  
 
 (*======================================================================
 Part 2: Dates as a record type
@@ -192,7 +235,12 @@ should be. Then, consider the implications of representing the overall
 data type as a tuple or a record.
 ......................................................................*)
 
-type date = NotImplemented ;;
+type date = 
+  {
+    year: int;
+    month: int;
+    day: int;
+  } ;;
 
 (* After you've thought it through, look up the Date module in the
 OCaml documentation to see how this was implemented there. If you
@@ -234,7 +282,31 @@ the invariant is violated, and returns the date if valid.
 
 exception Invalid_date of string ;;
 
-let validated_date = 
+let validated_date (d : date) : date= 
+  match d with 
+  | {year; month; day} ->
+    if (day <= 0 || month <= 0 || year <= 0) then
+      raise (Invalid_date "Invalid date.")
+    else if (   
+         month = 1 
+      || month = 3
+      || month = 5
+      || month = 7
+      || month = 8
+      || month = 10
+      || month = 12) && (day <= 31 ) then
+      d
+    else if (
+          month = 4
+      || month = 6
+      || month = 9
+      || month = 11) && (day <= 30) then
+      d
+    else if (month = 2 && year mod 4 = 0 && (year mod 100 !=0 || year mod 400 = 0) && day <= 29) then
+      d
+    else if (month = 2 && day <= 28) then d
+    else   raise (Invalid_date "Invalid date.");;
+
   fun _ -> failwith "validated_date not implemented" ;;
 
 (*======================================================================
